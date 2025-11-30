@@ -42,10 +42,10 @@ export function Menu() {
     if (tableId) {
       const tableData: Table = {
         id: tableId,
-        tableNumber: tableNumber || '',
-        tableName: tableName || undefined,
-        capacity: capacity ? parseInt(capacity, 10) : undefined,
-        location: location || undefined,
+        tableNumber: tableNumber || 'Unknown',
+        tableName: tableName || 'Table',
+        capacity: capacity ? parseInt(capacity, 10) : 0,
+        location: location || 'Unknown',
       };
       setTable(tableData);
       // Load menu after setting table

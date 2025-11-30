@@ -28,13 +28,18 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3030
  * Error Response Format: { statusCode: number, message: string, error: string }
  */
 export class ApiError extends Error {
+  statusCode: number;
+  error?: string;
+
   constructor(
-    public statusCode: number,
+    statusCode: number,
     message: string,
-    public error?: string
+    error?: string
   ) {
     super(message);
     this.name = 'ApiError';
+    this.statusCode = statusCode;
+    this.error = error;
   }
 }
 

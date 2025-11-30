@@ -16,7 +16,6 @@ export function Cart() {
     clearCart,
     setCurrentOrder,
     setPaymentMethods,
-    setSelectedPaymentMethod,
   } = useOrder();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
