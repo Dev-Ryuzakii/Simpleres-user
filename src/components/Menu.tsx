@@ -19,11 +19,55 @@ export function Menu() {
     setError(null);
     try {
       const menuData = await api.getMenu();
-      setMenu(menuData.filter(cat => cat.isActive));
-      if (menuData.length > 0) {
-        setSelectedCategory(menuData[0].id);
+      console.log('Menu data received:', menuData);
+      console.log('First category structure:', menuData[0]);
+      if (menuData[0]) {
+        console.log('First category menuItems:', menuData[0].menuItems);
+        console.log('First category keys:', Object.keys(menuData[0]));
+      }
+      
+      // Filter active categories and ensure menuItems is an array
+      // Show categories even if they have no items (they'll show empty state)
+      const validCategories = menuData
+        .filter(cat => {
+          // Only filter out inactive categories
+          if (!cat.isActive) {
+            console.log('Category filtered out (inactive):', cat.name);
+            return false;
+          }
+          return true;
+        })
+        .map(cat => {
+          // Check if menuItems exists and log its structure
+          console.log(`Category "${cat.name}" menuItems:`, cat.menuItems, 'Type:', typeof cat.menuItems, 'Is Array:', Array.isArray(cat.menuItems));
+          
+          // Handle different possible property names
+          const items = cat.menuItems || cat.items || [];
+          const menuItemsArray = Array.isArray(items) ? items : [];
+          
+          console.log(`Category "${cat.name}" processed items count:`, menuItemsArray.length);
+          
+          return {
+            ...cat,
+            menuItems: menuItemsArray
+          };
+        });
+      
+      console.log('Valid categories:', validCategories);
+      validCategories.forEach(cat => {
+        console.log(`Category "${cat.name}" has ${cat.menuItems.length} items`);
+      });
+      setMenu(validCategories);
+      
+      if (validCategories.length > 0) {
+        setSelectedCategory(validCategories[0].id);
+        console.log('Selected category:', validCategories[0].id, validCategories[0].name);
+      } else {
+        console.warn('No valid categories found');
+        setError('No menu categories available. Please add menu items through the admin panel.');
       }
     } catch (err: any) {
+      console.error('Error loading menu:', err);
       setError(err.message || 'Failed to load menu');
     } finally {
       setLoading(false);
@@ -134,10 +178,11 @@ export function Menu() {
       </div>
 
       {/* Category Tabs */}
-      <div className="bg-white border-b sticky top-[73px] z-10 overflow-x-auto">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex space-x-1">
-            {menu.map((category) => (
+      {menu.length > 0 && (
+        <div className="bg-white border-b sticky top-[73px] z-10 overflow-x-auto">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex space-x-1">
+              {menu.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
@@ -149,24 +194,43 @@ export function Menu() {
               >
                 {category.name}
               </button>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Menu Items */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {menu
-          .filter((cat) => cat.id === selectedCategory)
-          .map((category) => (
+        {menu.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <p>No menu categories available</p>
+            <p className="text-sm mt-2">Please add menu items through the admin panel.</p>
+          </div>
+        ) : !selectedCategory ? (
+          <div className="text-center py-12 text-gray-500">
+            <p>Please select a category</p>
+          </div>
+        ) : (
+          menu
+            .filter((cat) => cat.id === selectedCategory)
+            .map((category) => {
+              console.log('Rendering category:', category.name, 'Items:', category.menuItems?.length);
+              return (
             <div key={category.id} className="space-y-6">
               {category.description && (
                 <p className="text-gray-600">{category.description}</p>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {category.menuItems
-                  .filter((item) => item.isAvailable)
-                  .map((item) => {
+                {(!category.menuItems || category.menuItems.length === 0 || 
+                  category.menuItems.filter((item) => item.isAvailable).length === 0) ? (
+                  <div className="col-span-full text-center py-12 text-gray-500">
+                    <p>No items available in this category</p>
+                  </div>
+                ) : (
+                  category.menuItems
+                    .filter((item) => item.isAvailable)
+                    .map((item) => {
                     const quantity = getItemQuantity(item.id);
                     return (
                       <div
@@ -225,10 +289,13 @@ export function Menu() {
                         </div>
                       </div>
                     );
-                  })}
+                  })
+                )}
               </div>
             </div>
-          ))}
+            );
+            })
+        )}
       </div>
 
       {/* Floating Cart Button */}

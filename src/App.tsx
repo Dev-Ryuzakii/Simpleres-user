@@ -11,6 +11,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Menu />} />
+          <Route path="/order" element={<Menu />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/payment" element={<Payment />} />
